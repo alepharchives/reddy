@@ -17,7 +17,8 @@
          zrank_/4,
          zrevrank/3,
          zrevrank_/4,
-         zrange/4]).
+         zrange/4,
+         zrange_/5]).
 
 zadd(Conn, Key, Score, Member) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZADD, [Key, Score, Member]);
@@ -93,3 +94,8 @@ zrange(Conn, Key, Start, End) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZRANGE, [Key, Start, End]);
 zrange(Pool, Key, Start, End) when is_atom(Pool) ->
   ?WITH_POOL(Pool, ?ZRANGE, [Key, Start, End]).
+
+zrange_(Conn, Key, Start, End, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZRANGE, [Key, Start, End], WantsReturn);
+zrange_(Pool, Key, Start, End, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrange_, [Key, Start, End, WantsReturn]).
