@@ -114,3 +114,21 @@
 
 %% Pool macros
 -define(WITH_POOL(Pool, Fun, Args), fun() -> reddy_pool:with_pool(Pool, ?MODULE, Fun, Args) end()).
+
+%% Sorted Set ops
+-define(ZADD, "ZADD").
+-define(ZCARD, "ZCARD").
+-define(ZCOUNT, "ZCOUNT").
+-define(ZINCRBY, "ZINCRBY").
+-define(ZINTERSTORE, "ZINTERSTORE").
+-define(ZRANGE, "ZRANGE").
+-define(ZRANGEBYSCORE, "ZRANGEBYSCORE").
+-define(ZRANK, "ZRANK").
+-define(ZREM, "ZREM").
+-define(ZREMRANGEBYRANK, "ZREMRANGEBYRANK").
+-define(ZREMRANGEBYSCORE, "ZREMRANGEBYSCORE").
+-define(ZREVRANGE, "ZREVRANGE").
+-define(ZREVRANGEBYSCORE, "ZREVRANGEBYSCORE").
+-define(ZREVRANK, "ZREVRANK").
+-define(ZSCORE, "ZSCORE").
+-define(ZUNIONSTORE, "ZUNIONSTORE").
