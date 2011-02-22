@@ -36,7 +36,8 @@
 -export([parse_status/1,
          parse_integer/1,
          parse_bulk_size/1,
-         parse_multi_bulk_count/1]).
+         parse_multi_bulk_count/1,
+         parse_mixed_integer_bulk/1]).
 -export([to_iolist/1, to_binary/1]).
 
 to_iolist(#reddy_op{name=Op, args=Args}) ->
@@ -91,6 +92,11 @@ parse_multi_bulk_count(<<"*", Number/binary>>) ->
 parse_multi_bulk_count(<<"-ERR ", Reason/binary>>) ->
     {error, Reason}.
 
+parse_mixed_integer_bulk(<<"\$", Number/binary>>) ->
+  ?BTOI(Number);
+parse_mixed_integer_bulk(<<":", Number/binary>>) ->
+  ?BTOI(Number).
+
 -ifdef(TEST).
 status_test() ->
     [?assertMatch(ok, parse_status(<<"+OK">>)),
@@ -127,5 +133,7 @@ to_binary_test() ->
     ?assertMatch(<<"*3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$7\r\nmyvalue\r\n">>,
                  to_binary(#reddy_op{name="SET",
                                      args=[<<"mykey">>, <<"myvalue">>]})).
-
+parse_mixed_integer_bulk_test() ->
+  [?assertMatch(2, parse_mixed_integer_bulk(<<"\$2">>)),
+   ?assertMatch(-1, parse_integer(<<":-1">>))].
 -endif.

@@ -191,7 +191,9 @@ parse_response(Sock, File, multi_bulk, Data) ->
             undefined;
         Count ->
             read_multi_bulk_body(Sock, File, Count, [])
-    end.
+    end;
+parse_response(_Sock, _File, mixed_integer_bulk, Data) ->
+  reddy_protocol:parse_mixed_integer_bulk(Data).
 
 read_multi_bulk_body(_Sock, _File, 0, Accum) ->
     lists:reverse(Accum);

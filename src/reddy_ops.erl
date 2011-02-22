@@ -379,6 +379,52 @@ create(Op=?AUTH, Args) ->
               args=Args,
               resp_type=status};
 
+%% Sorted Set ops
+create(Op=?ZADD, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=integer};
+
+create(Op=?ZREM, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=integer};
+
+create(Op=?ZCARD, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=integer};
+
+create(Op=?ZCOUNT, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=integer};
+
+create(Op=?ZINCRBY, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=bulk};
+
+create(Op=?ZRANK, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=mixed_integer_bulk};
+
+create(Op=?ZREVRANK, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=mixed_integer_bulk};
+
+create(Op=?ZRANGE, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_Type=multi_bulk};
+
+create(Op=?ZREVRANGE, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_Type=multi_bulk};
+
 %% Health ops
 create(Op=?PING, _Args) ->
     #reddy_op{name=Op,
