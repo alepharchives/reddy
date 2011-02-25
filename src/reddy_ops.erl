@@ -425,6 +425,11 @@ create(Op=?ZREVRANGE, Args) ->
             args=Args,
             resp_type=multi_bulk};
 
+create(Op=?ZREMRANGEBYRANK, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=integer};
+
 %% Health ops
 create(Op=?PING, _Args) ->
     #reddy_op{name=Op,

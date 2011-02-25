@@ -25,7 +25,9 @@
          zrevrange/4,
          zrevrange_/5,
          zrevrange/5,
-         zrevrange_/6]).
+         zrevrange_/6,
+         zremrangebyrank/4,
+         zremrangebyrank_/5]).
 
 zadd(Conn, Key, Score, Member) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZADD, [Key, Score, Member]);
@@ -144,3 +146,13 @@ zrevrange_(Conn, Key, Start, End,
 zrevrange_(Pool, Key, Start, End, 
   #zrevrange_op{withscores=_WithScores} = Options, WantsReturn) when is_atom(Pool) ->
   ?WITH_POOL(Pool, zrevrange_, [Key, Start, End, Options, WantsReturn]).
+
+zremrangebyrank(Conn, Key, Start, Stop) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZREMRANGEBYRANK, [Key, Start, Stop]);
+zremrangebyrank(Pool, Key, Start, Stop) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZREMRANGEBYRANK, [Key, Start, Stop]).
+
+zremrangebyrank_(Conn, Key, Start, Stop, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZREMRANGEBYRANK, [Key, Start, Stop], WantsReturn);
+zremrangebyrank_(Pool, Key, Start, Stop, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zremrangebyrank_, [Key, Start, Stop, WantsReturn]).

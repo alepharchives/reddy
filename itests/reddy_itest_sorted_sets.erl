@@ -99,3 +99,15 @@ zrevrange_test() ->
   [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
   ?assertMatch([<<"three">>,<<"3">>,<<"two">>,<<"2">>,<<"one">>,<<"1">>], ?TEST_MOD:zrevrange(C, TestKey, -0, -1, #zrevrange_op{})),
   reddy_conn:close(C).
+
+zremrangebyrank_test() ->
+  {ok, C} = ?CONNECT(),
+  TestKey = <<"zremrangebyrank_test">>,
+  TestInput = [{TestKey, 1, <<"one">>}, 
+                {TestKey, 2, <<"two">>},
+                {TestKey, 3, <<"three">>}],
+  [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput],
+  [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
+  ?assertMatch(2, ?TEST_MOD:zremrangebyrank(C, TestKey, 0, 1)),
+  ?assertMatch([<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, 0, -1, #zrange_op{})),
+  reddy_conn:close(C).
