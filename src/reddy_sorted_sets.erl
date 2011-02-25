@@ -28,10 +28,10 @@
          zrevrange_/6,
          zremrangebyrank/4,
          zremrangebyrank_/5,
-         zremrangebyscore/4,
-         zremrangebyscore_/5,
          zscore/3,
-         zscore_/4]).
+         zscore_/4,
+         zremrangebyscore/4,
+         zremrangebyscore_/5]).
 
 zadd(Conn, Key, Score, Member) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZADD, [Key, Score, Member]);
