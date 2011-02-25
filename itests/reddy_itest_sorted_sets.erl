@@ -12,7 +12,7 @@ zadd_test() ->
   {TestKey, TestScore, TestMember} = {<<"zadd_test">>, 42, <<"one">>},
   ?TEST_MOD:zrem(C, TestKey, TestMember),
   ?assertMatch(1, ?TEST_MOD:zadd(C, TestKey, TestScore, TestMember)),
-  % ?assertMatch(TestMember, ?TEST_MOD:zrange(TestKey, 0, -1)),
+  ?assertMatch([<<"one">>], ?TEST_MOD:zrange(C, TestKey, 0, -1)),
   ?assertMatch(1,?TEST_MOD:zrem(C, TestKey, TestMember)),
   reddy_conn:close(C).
 
