@@ -111,3 +111,11 @@ zremrangebyrank_test() ->
   ?assertMatch(2, ?TEST_MOD:zremrangebyrank(C, TestKey, 0, 1)),
   ?assertMatch([<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, 0, -1, #zrange_op{})),
   reddy_conn:close(C).
+
+zscore_test() ->
+  {ok, C} = ?CONNECT(),
+  {TestKey, TestScore, TestMember} = {<<"zscore_test">>, 42, <<"fourty-two">>},
+  ?TEST_MOD:zrem(C, TestKey, TestMember),
+  ?assertMatch(1, ?TEST_MOD:zadd(C, TestKey, TestScore, TestMember)),
+  ?assertMatch(<<"42">>, ?TEST_MOD:zscore(C, TestKey, TestMember)),
+  reddy_conn:close(C).
