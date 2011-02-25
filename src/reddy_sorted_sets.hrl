@@ -1,0 +1,2 @@
+-record(zrange_op, {withscores = <<"WITHSCORES">>}).
+-record(zrevrange_op, {withscores = <<"WITHSCORES">>}).

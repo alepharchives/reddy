@@ -2,6 +2,7 @@
 -author('Bradford Winfrey <bradford.winfrey@gmail.com>').
 
 -include("reddy_ops.hrl").
+-include("reddy_sorted_sets.hrl").
 
 -export([zadd/4,
          zadd_/5,
@@ -17,7 +18,14 @@
          zrank_/4,
          zrevrank/3,
          zrevrank_/4,
-         zrange/4]).
+         zrange/4,
+         zrange_/5,
+         zrange/5,
+         zrange_/6,
+         zrevrange/4,
+         zrevrange_/5,
+         zrevrange/5,
+         zrevrange_/6]).
 
 zadd(Conn, Key, Score, Member) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZADD, [Key, Score, Member]);
@@ -93,3 +101,46 @@ zrange(Conn, Key, Start, End) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZRANGE, [Key, Start, End]);
 zrange(Pool, Key, Start, End) when is_atom(Pool) ->
   ?WITH_POOL(Pool, ?ZRANGE, [Key, Start, End]).
+
+zrange_(Conn, Key, Start, End, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZRANGE, [Key, Start, End], WantsReturn);
+zrange_(Pool, Key, Start, End, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrange_, [Key, Start, End, WantsReturn]).
+
+zrange(Conn, Key, Start, End, 
+  #zrange_op{withscores=WithScores} = _Options) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZRANGE, [Key, Start, End, WithScores]);
+zrange(Pool, Key, Start, End, 
+  #zrange_op{withscores=_WithScores} = Options) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZRANGE, [Key, Start, End, Options]).
+
+zrange_(Conn, Key, Start, End, 
+  #zrange_op{withscores=WithScores} = _Options, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZRANGE, [Key, Start, End, WithScores], WantsReturn);
+zrange_(Pool, Key, Start, End, 
+  #zrange_op{withscores=_WithScores} = Options, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrange_, [Key, Start, End, Options, WantsReturn]).
+
+zrevrange(Conn, Key, Start, End) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZREVRANGE, [Key, Start, End]);
+zrevrange(Pool, Key, Start, End) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZREVRANGE, [Key, Start, End]).
+
+zrevrange_(Conn, Key, Start, End, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZREVRANGE, [Key, Start, End], WantsReturn);
+zrevrange_(Pool, Key, Start, End, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrevrange_, [Key, Start, End, WantsReturn]).
+
+zrevrange(Conn, Key, Start, End, 
+  #zrevrange_op{withscores=WithScores} = _Options) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZREVRANGE, [Key, Start, End, WithScores]);
+zrevrange(Pool, Key, Start, End, 
+  #zrevrange_op{withscores=_WithScores} = Options) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZREVRANGE, [Key, Start, End, Options]).
+
+zrevrange_(Conn, Key, Start, End, 
+  #zrevrange_op{withscores=WithScores} = _Options, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZREVRANGE, [Key, Start, End, WithScores], WantsReturn);
+zrevrange_(Pool, Key, Start, End, 
+  #zrevrange_op{withscores=_WithScores} = Options, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrevrange_, [Key, Start, End, Options, WantsReturn]).
