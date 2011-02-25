@@ -37,12 +37,28 @@
          parse_integer/1,
          parse_bulk_size/1,
          parse_multi_bulk_count/1]).
--export([to_iolist/1, to_binary/1]).
+-export([to_iolist/1, to_binary/1, strip_empty_args/1]).
 
 to_iolist(#reddy_op{name=Op, args=Args}) ->
-    TotalSize = length(Args) + 1,
-    EncodedArgs = [encode_arg(Arg) || Arg <- Args],
+    NewArgs = strip_empty_args(Args),
+    TotalSize = length(NewArgs) + 1,
+    case Op of
+      "ZRANGEBYSCORE" ->
+        io:format("Args: ~p~nNewArgs: ~p~n, TotalSize: ~p~n",[Args,NewArgs,TotalSize]);
+      _ -> ok
+    end,
+    EncodedArgs = [encode_arg(Arg) || Arg <- NewArgs],
     [encode_op(Op, TotalSize)|EncodedArgs].
+
+strip_empty_args(Args) ->
+  lists:filter(fun(E) ->
+    case E of
+      <<>> -> false;
+      [] -> false;
+      undefined -> false;
+      _ -> true
+    end
+  end, Args).
 
 to_binary(Op) when is_record(Op, reddy_op) ->
     iolist_to_binary(to_iolist(Op)).

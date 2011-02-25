@@ -31,7 +31,11 @@
          zscore/3,
          zscore_/4,
          zremrangebyscore/4,
-         zremrangebyscore_/5]).
+         zremrangebyscore_/5,
+         zrangebyscore/4,
+         zrangebyscore_/5,
+         zrangebyscore/5,
+         zrangebyscore_/6]).
 
 zadd(Conn, Key, Score, Member) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZADD, [Key, Score, Member]);
@@ -180,3 +184,27 @@ zremrangebyscore_(Conn, Key, Min, Max, WantsReturn) when is_pid(Conn) ->
   reddy_conn:async(Conn, ?ZREMRANGEBYSCORE, [Key, Min, Max], WantsReturn);
 zremrangebyscore_(Pool, Key, Min, Max, WantsReturn) when is_atom(Pool) ->
   ?WITH_POOL(Pool, zremrangebyscore_, [Key, Min, Max, WantsReturn]).
+
+zrangebyscore(Conn, Key, Min, Max) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZRANGEBYSCORE, [Key, Min, Max]);
+zrangebyscore(Pool, Key, Min, Max) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZRANGEBYSCORE, [Key, Min, Max]).
+
+zrangebyscore_(Conn, Key, Min, Max, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZRANGEBYSCORE, [Key, Min, Max], WantsReturn);
+zrangebyscore_(Pool, Key, Min, Max, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrangebyscore_, [Key, Min, Max, WantsReturn]).
+
+zrangebyscore(Conn, Key, Min, Max, 
+  #zrangebyscore_op{withscores=WithScores,limit=Limit} = _Options) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZRANGEBYSCORE, [Key, Min, Max, WithScores, Limit]);
+zrangebyscore(Pool, Key, Min, Max, 
+  #zrangebyscore_op{withscores=_WithScores,limit=_Limit} = Options) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZRANGEBYSCORE, [Key, Min, Max, Options]).
+
+zrangebyscore_(Conn, Key, Min, Max, 
+  #zrangebyscore_op{withscores=WithScores,limit=Limit} = _Options, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZRANGEBYSCORE, [Key, Min, Max, WithScores, Limit], WantsReturn);
+zrangebyscore_(Pool, Key, Min, Max, 
+  #zrangebyscore_op{withscores=_WithScores,limit=_Limit} = Options, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrangebyscore_, [Key, Min, Max, Options, WantsReturn]).

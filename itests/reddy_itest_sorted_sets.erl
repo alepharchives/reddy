@@ -131,3 +131,18 @@ zremrangebyscore_test() ->
   ?assertMatch(2, ?TEST_MOD:zremrangebyscore(C, TestKey, <<"-inf">>, 2)),
   ?assertMatch([<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, 0, -1, #zrange_op{})),
   reddy_conn:close(C).
+
+zrangebyscore_test() ->
+  {ok, C} = ?CONNECT(),
+  TestKey = <<"zrangebyscore_test">>,
+  TestInput = [{TestKey, 1, <<"one">>}, 
+                {TestKey, 2, <<"two">>},
+                {TestKey, 3, <<"three">>}],
+  [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput],
+  [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
+  ?assertMatch([<<"one">>,<<"two">>,<<"three">>], ?TEST_MOD:zrangebyscore(C, TestKey, <<"-inf">>, <<"+inf">>)),
+  ?assertMatch([<<"one">>,<<"1">>,<<"two">>,<<"2">>,<<"three">>,<<"3">>], ?TEST_MOD:zrangebyscore(C, TestKey, <<"-inf">>, <<"+inf">>, 
+                                           #zrangebyscore_op{withscores = <<"WITHSCORES">>})),
+  ?assertMatch([<<"one">>,<<"1">>], ?TEST_MOD:zrangebyscore(C, TestKey, <<"-inf">>, <<"+inf">>, 
+                                           #zrangebyscore_op{limit = <<"LIMIT 0 1">>})),
+  reddy_conn:close(C).
