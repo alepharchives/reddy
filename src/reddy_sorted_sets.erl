@@ -28,6 +28,8 @@
          zrevrange_/6,
          zremrangebyrank/4,
          zremrangebyrank_/5,
+         zremrangebyscore/4,
+         zremrangebyscore_/5,
          zscore/3,
          zscore_/4]).
 
@@ -168,3 +170,13 @@ zscore_(Conn, Key, Member, WantsReturn) when is_pid(Conn) ->
   reddy_conn:async(Conn, ?ZSCORE, [Key, Member], WantsReturn);
 zscore_(Pool, Key, Member, WantsReturn) when is_atom(Pool) ->
   ?WITH_POOL(Pool, zscore_, [Key, Member, WantsReturn]).
+
+zremrangebyscore(Conn, Key, Min, Max) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZREMRANGEBYSCORE, [Key, Min, Max]);
+zremrangebyscore(Pool, Key, Min, Max) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZREMRANGEBYSCORE, [Key, Min, Max]).
+
+zremrangebyscore_(Conn, Key, Min, Max, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZREMRANGEBYSCORE, [Key, Min, Max], WantsReturn);
+zremrangebyscore_(Pool, Key, Min, Max, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zremrangebyscore_, [Key, Min, Max, WantsReturn]).

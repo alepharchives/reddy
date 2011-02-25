@@ -119,3 +119,15 @@ zscore_test() ->
   ?assertMatch(1, ?TEST_MOD:zadd(C, TestKey, TestScore, TestMember)),
   ?assertMatch(<<"42">>, ?TEST_MOD:zscore(C, TestKey, TestMember)),
   reddy_conn:close(C).
+
+zremrangebyscore_test() ->
+  {ok, C} = ?CONNECT(),
+  TestKey = <<"zremrangebyscore_test">>,
+  TestInput = [{TestKey, 1, <<"one">>}, 
+                {TestKey, 2, <<"two">>},
+                {TestKey, 3, <<"three">>}],
+  [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput],
+  [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
+  ?assertMatch(2, ?TEST_MOD:zremrangebyscore(C, TestKey, <<"-inf">>, 2)),
+  ?assertMatch([<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, 0, -1, #zrange_op{})),
+  reddy_conn:close(C).
