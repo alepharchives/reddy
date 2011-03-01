@@ -36,29 +36,14 @@
 -export([parse_status/1,
          parse_integer/1,
          parse_bulk_size/1,
-         parse_multi_bulk_count/1]).
--export([to_iolist/1, to_binary/1, strip_empty_args/1]).
+         parse_multi_bulk_count/1,
+         get_optional_args/1]).
+-export([to_iolist/1, to_binary/1]).
 
 to_iolist(#reddy_op{name=Op, args=Args}) ->
-    NewArgs = strip_empty_args(Args),
-    TotalSize = length(NewArgs) + 1,
-    case Op of
-      "ZRANGEBYSCORE" ->
-        io:format("Args: ~p~nNewArgs: ~p~n, TotalSize: ~p~n",[Args,NewArgs,TotalSize]);
-      _ -> ok
-    end,
-    EncodedArgs = [encode_arg(Arg) || Arg <- NewArgs],
-    [encode_op(Op, TotalSize)|EncodedArgs].
-
-strip_empty_args(Args) ->
-  lists:filter(fun(E) ->
-    case E of
-      <<>> -> false;
-      [] -> false;
-      undefined -> false;
-      _ -> true
-    end
-  end, Args).
+  TotalSize = length(Args) + 1,
+  EncodedArgs = [encode_arg(Arg) || Arg <- Args],
+  [encode_op(Op, TotalSize)|EncodedArgs].
 
 to_binary(Op) when is_record(Op, reddy_op) ->
     iolist_to_binary(to_iolist(Op)).
@@ -77,11 +62,20 @@ encode_arg(Arg) when is_binary(Arg) ->
     ["\$", Size, ?REDDY_EOL, Arg, ?REDDY_EOL];
 encode_arg(Arg) when is_list(Arg) ->
     Size = ?LTOSTR(Arg),
-    ["\$", Size, ?REDDY_EOL, Arg, ?REDDY_EOL].
+    ["\$", Size, ?REDDY_EOL, Arg, ?REDDY_EOL];
+encode_arg(Arg) when is_record(Arg, reddy_optional_arg) ->
+  #reddy_optional_arg{args=Args} = Arg,
+  merge_op([encode_arg(A) || A <- Args],[]).
 
 encode_op(Op, ArgCount) ->
     OpSize = ?LTOSTR(Op),
     ["*", integer_to_list(ArgCount), ?REDDY_EOL, "\$", OpSize, ?REDDY_EOL, Op, ?REDDY_EOL].
+
+merge_op([],Acc) ->
+  Acc;
+merge_op([H|T], Acc) ->
+  NewAcc = Acc ++ H,
+  merge_op(T, NewAcc).
 
 parse_status(<<"+OK">>) ->
     ok;
@@ -108,6 +102,40 @@ parse_multi_bulk_count(<<"*", Number/binary>>) ->
     ?BTOI(Number);
 parse_multi_bulk_count(<<"-ERR ", Reason/binary>>) ->
     {error, Reason}.
+
+get_optional_args(#reddy_optional_args{withscores=WithScores, limit=Limit, weights=Weights, aggregate=Aggregate}) ->
+  O = [case WithScores of
+        true -> #reddy_optional_arg{args=[?WITHSCORES]};
+        _ -> undefined
+       end,
+       case Limit of
+         [Offset, Total] ->
+           #reddy_optional_arg{args=[?LIMIT, Offset, Total]};
+        _ -> undefined
+       end,
+       case Weights of
+         Weight when is_list(Weight) ->
+           #reddy_optional_arg{args=lists:flatten([?WEIGHTS, Weight])};
+         Weight when is_integer(Weight) ->
+           #reddy_optional_arg{args=[?WEIGHTS, Weight]};
+         _ -> undefined
+       end,
+       case Aggregate of
+         sum -> #reddy_optional_arg{args=[?AGGREGATE, "SUM"]};
+         min -> #reddy_optional_arg{args=[?AGGREGATE, "MIN"]};
+         max -> #reddy_optional_arg{args=[?AGGREGATE, "MAX"]};
+         _ -> undefined
+       end
+      ],
+  lists:filter(fun(E) ->
+    case E of
+      <<>> -> false;
+      [] -> false;
+      false -> false; % Duh, right?
+      undefined -> false;
+      _ -> true
+    end
+  end, O).
 
 -ifdef(TEST).
 status_test() ->
@@ -146,4 +174,10 @@ to_binary_test() ->
     ?assertMatch(<<"*3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$7\r\nmyvalue\r\n">>,
                  to_binary(#reddy_op{name="SET",
                                      args=[<<"mykey">>, <<"myvalue">>]})).
+merge_op_test() ->
+  Cmd = [["$","5","\r\n","LIMIT","\r\n"],
+             ["$","1","\r\n","0","\r\n"],
+             ["$","1","\r\n","0","\r\n"]],
+  ?assertMatch(["$","5","\r\n","LIMIT","\r\n","$","1","\r\n","0","\r\n","$","1","\r\n","0","\r\n"], merge_op(Cmd,[])).
+
 -endif.

@@ -3,7 +3,7 @@
 
 -include_lib("eunit/include/eunit.hrl").
 -include("reddy_itests.hrl").
--include("../src/reddy_sorted_sets.hrl").
+-include("../src/reddy.hrl").
 
 -define(TEST_MOD, reddy_sorted_sets).
 
@@ -86,7 +86,7 @@ zrange_test() ->
                 {TestKey, 3, <<"three">>}],
   [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput],
   [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
-  ?assertMatch([<<"one">>,<<"1">>,<<"two">>,<<"2">>,<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, -0, -1, #zrange_op{})),
+  ?assertMatch([<<"one">>,<<"1">>,<<"two">>,<<"2">>,<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, -0, -1, #reddy_optional_args{withscores=true})),
   reddy_conn:close(C).
 
 zrevrange_test() ->
@@ -97,7 +97,7 @@ zrevrange_test() ->
                 {TestKey, 3, <<"three">>}],
   [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput],
   [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
-  ?assertMatch([<<"three">>,<<"3">>,<<"two">>,<<"2">>,<<"one">>,<<"1">>], ?TEST_MOD:zrevrange(C, TestKey, -0, -1, #zrevrange_op{})),
+  ?assertMatch([<<"three">>,<<"3">>,<<"two">>,<<"2">>,<<"one">>,<<"1">>], ?TEST_MOD:zrevrange(C, TestKey, -0, -1, #reddy_optional_args{withscores=true})),
   reddy_conn:close(C).
 
 zremrangebyrank_test() ->
@@ -109,7 +109,7 @@ zremrangebyrank_test() ->
   [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput],
   [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
   ?assertMatch(2, ?TEST_MOD:zremrangebyrank(C, TestKey, 0, 1)),
-  ?assertMatch([<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, 0, -1, #zrange_op{})),
+  ?assertMatch([<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, 0, -1, #reddy_optional_args{withscores=true})),
   reddy_conn:close(C).
 
 zscore_test() ->
@@ -129,7 +129,7 @@ zremrangebyscore_test() ->
   [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput],
   [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
   ?assertMatch(2, ?TEST_MOD:zremrangebyscore(C, TestKey, <<"-inf">>, 2)),
-  ?assertMatch([<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, 0, -1, #zrange_op{})),
+  ?assertMatch([<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestKey, 0, -1, #reddy_optional_args{withscores=true})),
   reddy_conn:close(C).
 
 zrangebyscore_test() ->
@@ -141,8 +141,8 @@ zrangebyscore_test() ->
   [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput],
   [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput],
   ?assertMatch([<<"one">>,<<"two">>,<<"three">>], ?TEST_MOD:zrangebyscore(C, TestKey, <<"-inf">>, <<"+inf">>)),
-  ?assertMatch([<<"one">>,<<"1">>,<<"two">>,<<"2">>,<<"three">>,<<"3">>], ?TEST_MOD:zrangebyscore(C, TestKey, <<"-inf">>, <<"+inf">>, 
-                                           #zrangebyscore_op{withscores = <<"WITHSCORES">>})),
-  ?assertMatch([<<"one">>,<<"1">>], ?TEST_MOD:zrangebyscore(C, TestKey, <<"-inf">>, <<"+inf">>, 
-                                           #zrangebyscore_op{limit = <<"LIMIT 0 1">>})),
+  Opt1 = #reddy_optional_args{withscores=true},
+  ?assertMatch([<<"one">>,<<"1">>,<<"two">>,<<"2">>,<<"three">>,<<"3">>], ?TEST_MOD:zrangebyscore(C, TestKey, <<"-inf">>, <<"+inf">>, Opt1)),
+  Opt2 = #reddy_optional_args{limit=[0,1]},
+  ?assertMatch([<<"one">>], ?TEST_MOD:zrangebyscore(C, TestKey, 0, 1, Opt2)),
   reddy_conn:close(C).
