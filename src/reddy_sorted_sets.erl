@@ -35,7 +35,15 @@
          zrangebyscore/4,
          zrangebyscore_/5,
          zrangebyscore/5,
-         zrangebyscore_/6]).
+         zrangebyscore_/6,
+         zrevrangebyscore/4,
+         zrevrangebyscore_/5,
+         zrevrangebyscore/5,
+         zrevrangebyscore_/6,
+         zinterstore/4,
+         zinterstore_/5,
+         zinterstore/5,
+         zinterstore_/6]).
 
 zadd(Conn, Key, Score, Member) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZADD, [Key, Score, Member]);
@@ -202,3 +210,48 @@ zrangebyscore_(Conn, Key, Min, Max, Options, WantsReturn) when is_record(Options
   reddy_conn:async(Conn, ?ZRANGEBYSCORE, Args, WantsReturn);
 zrangebyscore_(Pool, Key, Min, Max, Options, WantsReturn) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
   ?WITH_POOL(Pool, zrangebyscore_, [Key, Min, Max, Options, WantsReturn]).
+
+zrevrangebyscore(Conn, Key, Min, Max) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZREVRANGEBYSCORE, [Key, Min, Max]);
+zrevrangebyscore(Pool, Key, Min, Max) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZREVRANGEBYSCORE, [Key, Min, Max]).
+
+zrevrangebyscore_(Conn, Key, Min, Max, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZREVRANGEBYSCORE, [Key, Min, Max], WantsReturn);
+zrevrangebyscore_(Pool, Key, Min, Max, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrevrangebyscore_, [Key, Min, Max, WantsReturn]).
+
+zrevrangebyscore(Conn, Key, Min, Max, Options) when is_record(Options, reddy_optional_args) andalso is_pid(Conn) ->
+  Args = [Key, Min, Max] ++ reddy_protocol:get_optional_args(Options),
+  reddy_conn:sync(Conn, ?ZREVRANGEBYSCORE, Args);
+zrevrangebyscore(Pool, Key, Min, Max, Options) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZREVRANGEBYSCORE, [Key, Min, Max, Options]).
+
+zrevrangebyscore_(Conn, Key, Min, Max, Options, WantsReturn) when is_record(Options, reddy_optional_args) andalso is_pid(Conn) ->
+  Args = [Key, Min, Max] ++ reddy_protocol:get_optional_args(Options),
+  reddy_conn:async(Conn, ?ZREVRANGEBYSCORE, Args, WantsReturn);
+zrevrangebyscore_(Pool, Key, Min, Max, Options, WantsReturn) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
+  ?WITH_POOL(Pool, zrevrangebyscore_, [Key, Min, Max, Options, WantsReturn]).
+
+zinterstore(Conn, Destination, NumKeys, Keys) when is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZINTERSTORE, [Destination, NumKeys, Keys]);
+zinterstore(Pool, Destination, NumKeys, Keys) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZINTERSTORE, [Destination, NumKeys, Keys]).
+
+zinterstore_(Conn, Destination, NumKeys, Keys, WantsReturn) when is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZINTERSTORE, [Destination, NumKeys, Keys], WantsReturn);
+zinterstore_(Pool, Destination, NumKeys, Keys, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zinterstore_, [Destination, NumKeys, Keys, WantsReturn]).
+
+zinterstore(Conn, Destination, NumKeys, Keys, Options) when is_record(Options, reddy_optional_args) andalso is_pid(Conn) ->
+  Args = [Destination, NumKeys, Keys] ++ reddy_protocol:get_optional_args(Options),
+  reddy_conn:sync(Conn, ?ZINTERSTORE, Args);
+zinterstore(Pool, Destination, NumKeys, Keys, Options) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZINTERSTORE, [Destination, NumKeys, Keys, Options]).
+
+zinterstore_(Conn, Destination, NumKeys, Keys, Options, WantsReturn) when is_record(Options, reddy_optional_args) andalso is_pid(Conn) ->
+  Args = [Destination, NumKeys, Keys] ++ reddy_protocol:get_optional_args(Options),
+  reddy_conn:aync(Conn, ?ZINTERSTORE, Args, WantsReturn);
+zinterstore_(Pool, Destination, NumKeys, Keys, Options, WantsReturn) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
+  ?WITH_POOL(Pool, zinterstore_, [Destination, NumKeys, Keys, Options, WantsReturn]).
+

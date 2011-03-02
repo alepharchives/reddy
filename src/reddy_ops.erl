@@ -445,6 +445,16 @@ create(Op=?ZRANGEBYSCORE, Args) ->
             args=Args,
             resp_type=multi_bulk};
 
+create(Op=?ZREVRANGEBYSCORE, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=multi_bulk};
+
+create(Op=?ZINTERSTORE, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=integer};
+
 %% Health ops
 create(Op=?PING, _Args) ->
     #reddy_op{name=Op,

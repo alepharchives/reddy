@@ -38,7 +38,7 @@ start_link() ->
     supervisor:start_link({local, ?SERVER}, ?MODULE, []).
 
 new_conn(Owner, Addr, Port, Opts) ->
-    supervisor:start_child(?SERVER, [Owner, Addr, Port, [{trace_file,"/Users/winfrebs/Projects/reddy/tracer.log"}]]).
+    supervisor:start_child(?SERVER, [Owner, Addr, Port, Opts]).
 
 init([]) ->
     Child = {reddy_conn, {reddy_conn, start_link, []},

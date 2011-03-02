@@ -41,8 +41,7 @@
 -export([to_iolist/1, to_binary/1]).
 
 to_iolist(#reddy_op{name=Op, args=Args}) ->
-  TotalSize = length(Args) + 1,
-  EncodedArgs = [encode_arg(Arg) || Arg <- Args],
+  [{args, EncodedArgs}, {size, TotalSize}] = build_args(Args),
   [encode_op(Op, TotalSize)|EncodedArgs].
 
 to_binary(Op) when is_record(Op, reddy_op) ->
@@ -65,17 +64,11 @@ encode_arg(Arg) when is_list(Arg) ->
     ["\$", Size, ?REDDY_EOL, Arg, ?REDDY_EOL];
 encode_arg(Arg) when is_record(Arg, reddy_optional_arg) ->
   #reddy_optional_arg{args=Args} = Arg,
-  merge_op([encode_arg(A) || A <- Args],[]).
+  [encode_arg(A) || A <- Args].
 
 encode_op(Op, ArgCount) ->
     OpSize = ?LTOSTR(Op),
     ["*", integer_to_list(ArgCount), ?REDDY_EOL, "\$", OpSize, ?REDDY_EOL, Op, ?REDDY_EOL].
-
-merge_op([],Acc) ->
-  Acc;
-merge_op([H|T], Acc) ->
-  NewAcc = Acc ++ H,
-  merge_op(T, NewAcc).
 
 parse_status(<<"+OK">>) ->
     ok;
@@ -137,6 +130,17 @@ get_optional_args(#reddy_optional_args{withscores=WithScores, limit=Limit, weigh
     end
   end, O).
 
+build_args(Args) ->
+  OptArgs = lists:filter(fun(E) -> is_record(E, reddy_optional_arg) end, Args),
+  CmdArgs = Args -- OptArgs,
+  EncodedCmdArgs = [encode_arg(Arg) || Arg <- CmdArgs],
+  EncodedArgs = case [encode_arg(OArg) || OArg <- OptArgs] of
+    [] -> EncodedCmdArgs;
+    EncodedOptionalArgs -> EncodedCmdArgs ++ hd(EncodedOptionalArgs)
+  end,
+  TotalSize = length(EncodedArgs) + 1,
+  [{args, EncodedArgs}, {size, TotalSize}].
+
 -ifdef(TEST).
 status_test() ->
     [?assertMatch(ok, parse_status(<<"+OK">>)),
@@ -174,10 +178,4 @@ to_binary_test() ->
     ?assertMatch(<<"*3\r\n$3\r\nSET\r\n$5\r\nmykey\r\n$7\r\nmyvalue\r\n">>,
                  to_binary(#reddy_op{name="SET",
                                      args=[<<"mykey">>, <<"myvalue">>]})).
-merge_op_test() ->
-  Cmd = [["$","5","\r\n","LIMIT","\r\n"],
-             ["$","1","\r\n","0","\r\n"],
-             ["$","1","\r\n","0","\r\n"]],
-  ?assertMatch(["$","5","\r\n","LIMIT","\r\n","$","1","\r\n","0","\r\n","$","1","\r\n","0","\r\n"], merge_op(Cmd,[])).
-
 -endif.
