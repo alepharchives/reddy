@@ -455,6 +455,11 @@ create(Op=?ZINTERSTORE, Args) ->
             args=Args,
             resp_type=integer};
 
+create(Op=?ZUNIONSTORE, Args) ->
+  #reddy_op{name=Op,
+            args=Args,
+            resp_type=integer};
+
 %% Health ops
 create(Op=?PING, _Args) ->
     #reddy_op{name=Op,

@@ -162,7 +162,7 @@ zrevrangebyscore_test() ->
   ?assertMatch([<<"one">>], ?TEST_MOD:zrevrangebyscore(C, TestKey, 1, 0, Opt2)),
   reddy_conn:close(C).
 
-zinterstore_test() ->
+zinterstore_single_key_test() ->
   {ok, C} = ?CONNECT(),
   TestOut1 = <<"zinterstore_out1">>,
   TestOut2 = <<"zinterstore_out2">>,
@@ -176,6 +176,77 @@ zinterstore_test() ->
                 {TestKey2, 3, <<"three">>}],
   [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput1 ++ TestInput2],
   [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput1 ++ TestInput2],
-  ?assertMatch(2, ?TEST_MOD:zinterstore(C, TestOut1, 2, [TestKey1, TestKey2])),
-  ?assertMatch([<<"one">>,<<"1">>,<<"two">>,<<"2">>], ?TEST_MOD:zrange(C, TestOut1, 0, -1, #reddy_optional_args{withscores=true})),
+  ?assertMatch(3, ?TEST_MOD:zinterstore(C, TestOut1, TestKey1)),
+  ?assertMatch([<<"one">>,<<"1">>,<<"two">>,<<"2">>,<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestOut1, 0, -1, #reddy_optional_args{withscores=true})),
+  reddy_conn:close(C).
+
+zinterstore_single_key_with_options_test() ->
+  {ok, C} = ?CONNECT(),
+  TestOut1 = <<"zinterstoreopt_out1">>,
+  TestOut2 = <<"zinterstoreopt_out2">>,
+  TestKey1 = <<"zinterstoreopt1">>,
+  TestKey2 = <<"zinterstoreopt2">>,
+  TestInput1 = [{TestKey1, 1, <<"one">>}, 
+                {TestKey1, 2, <<"two">>},
+                {TestKey1, 3, <<"three">>}],
+  TestInput2 = [{TestKey2, 1, <<"one">>}, 
+                {TestKey2, 2, <<"two">>},
+                {TestKey2, 3, <<"three">>}],
+  [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- [TestOut1, TestOut2]],
+  [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput1 ++ TestInput2],
+  [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput1 ++ TestInput2],
+  ?assertMatch(3, ?TEST_MOD:zinterstore(C, TestOut1, TestKey1, #reddy_optional_args{weights=1})),
+  ?assertMatch([<<"one">>,<<"1">>,<<"two">>,<<"2">>,<<"three">>,<<"3">>], ?TEST_MOD:zrange(C, TestOut1, 0, -1, #reddy_optional_args{withscores=true})),
+  reddy_conn:close(C).
+
+zinterstore_multi_key_test() ->
+  {ok, C} = ?CONNECT(),
+  TestOut1 = <<"zinterstore_out1">>,
+  TestOut2 = <<"zinterstore_out2">>,
+  TestKey1 = <<"zinterstore1">>,
+  TestKey2 = <<"zinterstore2">>,
+  TestInput1 = [{TestKey1, 1, <<"one">>},
+                {TestKey1, 2, <<"two">>},
+                {TestKey1, 3, <<"three">>}],
+  TestInput2 = [{TestKey2, 1, <<"one">>},
+                {TestKey2, 2, <<"two">>},
+                {TestKey2, 3, <<"three">>}],
+  [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput1 ++ TestInput2],
+  [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput1 ++ TestInput2],
+  ?assertMatch(3, ?TEST_MOD:zinterstore(C, TestOut1, #reddy_optional_args{keys=[TestKey1, TestKey2]})),
+  ?assertMatch([<<"one">>,<<"2">>,<<"two">>,<<"4">>,<<"three">>,<<"6">>], ?TEST_MOD:zrange(C, TestOut1, 0, -1, #reddy_optional_args{withscores=true})),
+  reddy_conn:close(C).
+
+zinterstore_multi_key_with_options_test() ->
+  {ok, C} = ?CONNECT(),
+  TestOut1 = <<"zinterstore_out1">>,
+  TestOut2 = <<"zinterstore_out2">>,
+  TestKey1 = <<"zinterstore1">>,
+  TestKey2 = <<"zinterstore2">>,
+  TestInput1 = [{TestKey1, 1, <<"one">>},
+                {TestKey1, 2, <<"two">>},
+                {TestKey1, 3, <<"three">>}],
+  TestInput2 = [{TestKey2, 1, <<"one">>},
+                {TestKey2, 2, <<"two">>},
+                {TestKey2, 3, <<"three">>}],
+  [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput1 ++ TestInput2],
+  [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput1 ++ TestInput2],
+  ?assertMatch(3, ?TEST_MOD:zinterstore(C, TestOut1, #reddy_optional_args{keys=[TestKey1, TestKey2],weights=[2,3]})),
+  ?assertMatch([<<"one">>,<<"2">>,<<"two">>,<<"4">>,<<"three">>,<<"6">>], ?TEST_MOD:zrange(C, TestOut1, 0, -1, #reddy_optional_args{withscores=true})),
+  reddy_conn:close(C).
+
+zunionstore_test() ->
+  {ok, C} = ?CONNECT(),
+  TestKeyOut = <<"zunionout">>,
+  TestKey1 = <<"zunion1">>,
+  TestKey2 = <<"zunion2">>,
+  TestInput1 = [{TestKey1, 1, <<"one">>},
+                {TestKey1, 2, <<"two">>}],
+  TestInput2 = [{TestKey2, 1, <<"one">>},
+                {TestKey2, 2, <<"two">>},
+                {TestKey2, 3, <<"three">>}],
+  [?TEST_MOD:zrem(C, Key, Member) || {Key, _Score, Member} <- TestInput1 ++ TestInput2],
+  [?TEST_MOD:zadd(C, Key, Score, Member) || {Key, Score, Member} <- TestInput1 ++ TestInput2],
+  ?assertMatch(3, ?TEST_MOD:zunionstore(C, TestKeyOut, #reddy_optional_args{keys=[TestKey1, TestKey2],weights=[2,3]})),
+  ?assertMatch([<<"one">>,<<"2">>,<<"three">>,<<"3">>,<<"two">>,<<"4">>], ?TEST_MOD:zrange(C, TestKeyOut, 0, -1, #reddy_optional_args{withscores=true})),
   reddy_conn:close(C).

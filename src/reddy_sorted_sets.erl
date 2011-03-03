@@ -40,10 +40,14 @@
          zrevrangebyscore_/5,
          zrevrangebyscore/5,
          zrevrangebyscore_/6,
+         zinterstore/3,
+         zinterstore_/4,
          zinterstore/4,
          zinterstore_/5,
-         zinterstore/5,
-         zinterstore_/6]).
+         zunionstore/3,
+         zunionstore_/4,
+         zunionstore/4,
+         zunionstore_/5]).
 
 zadd(Conn, Key, Score, Member) when is_pid(Conn) ->
   reddy_conn:sync(Conn, ?ZADD, [Key, Score, Member]);
@@ -233,25 +237,56 @@ zrevrangebyscore_(Conn, Key, Min, Max, Options, WantsReturn) when is_record(Opti
 zrevrangebyscore_(Pool, Key, Min, Max, Options, WantsReturn) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
   ?WITH_POOL(Pool, zrevrangebyscore_, [Key, Min, Max, Options, WantsReturn]).
 
-zinterstore(Conn, Destination, NumKeys, Keys) when is_pid(Conn) ->
-  reddy_conn:sync(Conn, ?ZINTERSTORE, [Destination, NumKeys, Keys]);
-zinterstore(Pool, Destination, NumKeys, Keys) when is_atom(Pool) ->
-  ?WITH_POOL(Pool, ?ZINTERSTORE, [Destination, NumKeys, Keys]).
-
-zinterstore_(Conn, Destination, NumKeys, Keys, WantsReturn) when is_pid(Conn) ->
-  reddy_conn:async(Conn, ?ZINTERSTORE, [Destination, NumKeys, Keys], WantsReturn);
-zinterstore_(Pool, Destination, NumKeys, Keys, WantsReturn) when is_atom(Pool) ->
-  ?WITH_POOL(Pool, zinterstore_, [Destination, NumKeys, Keys, WantsReturn]).
-
-zinterstore(Conn, Destination, NumKeys, Keys, Options) when is_record(Options, reddy_optional_args) andalso is_pid(Conn) ->
-  Args = [Destination, NumKeys, Keys] ++ reddy_protocol:get_optional_args(Options),
+zinterstore(Conn, Destination, #reddy_optional_args{keys=Keys} = OptKeys) when is_pid(Conn) ->
+  Args = [Destination, length(Keys)] ++ reddy_protocol:get_optional_args(OptKeys),
   reddy_conn:sync(Conn, ?ZINTERSTORE, Args);
-zinterstore(Pool, Destination, NumKeys, Keys, Options) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
-  ?WITH_POOL(Pool, ?ZINTERSTORE, [Destination, NumKeys, Keys, Options]).
+zinterstore(Conn, Destination, Key) when is_binary(Key) andalso is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZINTERSTORE, [Destination, 1, Key]);
+zinterstore(Pool, Destination, Keys) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZINTERSTORE, [Destination, Keys]).
 
-zinterstore_(Conn, Destination, NumKeys, Keys, Options, WantsReturn) when is_record(Options, reddy_optional_args) andalso is_pid(Conn) ->
-  Args = [Destination, NumKeys, Keys] ++ reddy_protocol:get_optional_args(Options),
-  reddy_conn:aync(Conn, ?ZINTERSTORE, Args, WantsReturn);
-zinterstore_(Pool, Destination, NumKeys, Keys, Options, WantsReturn) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
-  ?WITH_POOL(Pool, zinterstore_, [Destination, NumKeys, Keys, Options, WantsReturn]).
+zinterstore_(Conn, Destination, #reddy_optional_args{keys=Keys} = OptKeys, WantsReturn) when is_pid(Conn) ->
+  Args = [Destination, length(Keys)] ++ reddy_protocol:get_optional_args(OptKeys),
+  reddy_conn:async(Conn, ?ZINTERSTORE, Args, WantsReturn);
+zinterstore_(Conn, Destination, Key, WantsReturn) when is_binary(Key) andalso is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZINTERSTORE, [Destination, 1, Key], WantsReturn);
+zinterstore_(Pool, Destination, Keys, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zinterstore_, [Destination, Keys, WantsReturn]).
 
+zinterstore(Conn, Destination, Key, Options) when is_record(Options, reddy_optional_args) andalso is_binary(Key) andalso is_pid(Conn) ->
+  Args = [Destination, 1, Key] ++ reddy_protocol:get_optional_args(Options),
+  reddy_conn:sync(Conn, ?ZINTERSTORE, Args);
+zinterstore(Pool, Destination, Keys, Options) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZINTERSTORE, [Destination, Keys, Options]).
+
+zinterstore_(Conn, Destination, Key, Options, WantsReturn) when is_binary(Key) andalso is_record(Options, reddy_optional_args) andalso is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZINTERSTORE, [Destination, 1, Key], WantsReturn);
+zinterstore_(Pool, Destination, Key, Options, WantsReturn) when is_binary(Key) andalso is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
+  ?WITH_POOL(Pool, zinterstore_, [Destination, Key, Options, WantsReturn]).
+
+zunionstore(Conn, Destination, #reddy_optional_args{keys=Keys} = OptKeys) when is_pid(Conn) ->
+  Args = [Destination, length(Keys)] ++ reddy_protocol:get_optional_args(OptKeys),
+  reddy_conn:sync(Conn, ?ZUNIONSTORE, Args);
+zunionstore(Conn, Destination, Key) when is_binary(Key) andalso is_pid(Conn) ->
+  reddy_conn:sync(Conn, ?ZUNIONSTORE, [Destination, 1, Key]);
+zunionstore(Pool, Destination, Keys) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZUNIONSTORE, [Destination, Keys]).
+
+zunionstore_(Conn, Destination, #reddy_optional_args{keys=Keys} = OptKeys, WantsReturn) when is_pid(Conn) ->
+  Args = [Destination, length(Keys)] ++ reddy_protocol:get_optional_args(OptKeys),
+  reddy_conn:async(Conn, ?ZUNIONSTORE, Args, WantsReturn);
+zunionstore_(Conn, Destination, Key, WantsReturn) when is_binary(Key) andalso is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZUNIONSTORE, [Destination, 1, Key], WantsReturn);
+zunionstore_(Pool, Destination, Keys, WantsReturn) when is_atom(Pool) ->
+  ?WITH_POOL(Pool, zunionstore_, [Destination, Keys, WantsReturn]).
+
+zunionstore(Conn, Destination, Key, Options) when is_record(Options, reddy_optional_args) andalso is_binary(Key) andalso is_pid(Conn) ->
+  Args = [Destination, 1, Key] ++ reddy_protocol:get_optional_args(Options),
+  reddy_conn:sync(Conn, ?ZUNIONSTORE, Args);
+zunionstore(Pool, Destination, Keys, Options) when is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
+  ?WITH_POOL(Pool, ?ZUNIONSTORE, [Destination, Keys, Options]).
+
+zunionstore_(Conn, Destination, Key, Options, WantsReturn) when is_binary(Key) andalso is_record(Options, reddy_optional_args) andalso is_pid(Conn) ->
+  reddy_conn:async(Conn, ?ZUNIONSTORE, [Destination, 1, Key], WantsReturn);
+zunionstore_(Pool, Destination, Key, Options, WantsReturn) when is_binary(Key) andalso is_record(Options, reddy_optional_args) andalso is_atom(Pool) ->
+  ?WITH_POOL(Pool, zunionstore_, [Destination, Key, Options, WantsReturn]).

@@ -37,7 +37,8 @@
          parse_integer/1,
          parse_bulk_size/1,
          parse_multi_bulk_count/1,
-         get_optional_args/1]).
+         get_optional_args/1,
+         encode_arg/1]).
 -export([to_iolist/1, to_binary/1]).
 
 to_iolist(#reddy_op{name=Op, args=Args}) ->
@@ -96,8 +97,13 @@ parse_multi_bulk_count(<<"*", Number/binary>>) ->
 parse_multi_bulk_count(<<"-ERR ", Reason/binary>>) ->
     {error, Reason}.
 
-get_optional_args(#reddy_optional_args{withscores=WithScores, limit=Limit, weights=Weights, aggregate=Aggregate}) ->
-  O = [case WithScores of
+get_optional_args(#reddy_optional_args{withscores=WithScores, limit=Limit, weights=Weights, aggregate=Aggregate, keys=OptKeys}) ->
+  O = [case OptKeys of
+        Keys when is_list(Keys) ->
+          #reddy_optional_arg{args=Keys};
+        _ -> undefined
+       end,
+       case WithScores of
         true -> #reddy_optional_arg{args=[?WITHSCORES]};
         _ -> undefined
        end,
@@ -108,9 +114,9 @@ get_optional_args(#reddy_optional_args{withscores=WithScores, limit=Limit, weigh
        end,
        case Weights of
          Weight when is_list(Weight) ->
-           #reddy_optional_arg{args=lists:flatten([?WEIGHTS, Weight])};
+           #reddy_optional_arg{args=[?WEIGHTS] ++ Weight};
          Weight when is_integer(Weight) ->
-           #reddy_optional_arg{args=[?WEIGHTS, Weight]};
+           #reddy_optional_arg{args=[?WEIGHTS] ++ [Weight]};
          _ -> undefined
        end,
        case Aggregate of
