@@ -26,11 +26,22 @@
 -include("reddy_ops.hrl").
 
 -export([info/1,
+         flushdb/1,
          auth/2]).
 
 auth(Conn, Password) when is_pid(Conn) ->
     reddy_conn:sync(Conn, ?AUTH, [Password]).
 
+flushdb(Conn) when is_pid(Conn) ->
+    reddy_conn:sync(Conn, ?FLUSHDB, []);
+flushdb(Pool) ->
+    case reddy_pool:check_out(Pool) of
+        {ok, Conn} ->
+	    flushdb(Conn),
+	    reddy_pool:check_in(Pool);
+	Error ->
+	    Error
+    end.
 
 info(Conn) when is_pid(Conn) ->
     Info = binary_to_list(reddy_conn:sync(Conn, ?INFO, [])),

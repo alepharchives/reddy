@@ -112,5 +112,8 @@
 -define(PING, "PING").
 -define(ECHO, "ECHO").
 
+%% Server ops
+-define(FLUSHDB, "FLUSHDB").
+
 %% Pool macros
 -define(WITH_POOL(Pool, Fun, Args), fun() -> reddy_pool:with_pool(Pool, ?MODULE, Fun, Args) end()).

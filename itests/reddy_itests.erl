@@ -15,4 +15,5 @@ run(Host, Port) ->
 
 all_test_() ->
     [{module, reddy_itest_lists},
-     {module, reddy_itest_keys}].
+     {module, reddy_itest_keys},
+     {module, reddy_itest_server}].
