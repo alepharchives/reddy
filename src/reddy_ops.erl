@@ -238,6 +238,12 @@ create(Op=?SUNIONSTORE, Args) ->
               args=lists:flatten(Args),
               resp_type=integer};
 
+%% Sortet set ops
+create(Op=?ZADD, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=integer};
+
 %% Hash ops
 create(Op=?HDEL, Args) ->
     #reddy_op{name=Op,

@@ -70,6 +70,9 @@
 -define(SUNION, "SUNION").
 -define(SUNIONSTORE, "SUNIONSTORE").
 
+%% Sortet set ops
+-define(ZADD, "ZADD").
+
 %% Hash ops
 -define(HDEL, "HDEL").
 -define(HEXISTS, "HEXISTS").
