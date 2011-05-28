@@ -7,26 +7,23 @@
 	 zcount/4,
 	 zincrby/4,
 %	 zinterstore/3,
-	 zrange/5, %CHECK
-%	 zrangebyscore/4, %CHECK
+	 zrange/5,
+	 zrange/4,
+%	 zrangebyscore/4,
 	 zrank/3,
 	 zrem/3,
 %	 zremrangebyrank/4,
 	 zremrangebyscore/4,
 %	 zrevrange/4,
-%	 zrevrangebyscore/4,
+%	 zrevrangebyscore/4,1
 	 zrevrank/3,
 	 zscore/3
 %	 zunionstore/3
 	]).
 
-zadd(Conn, Key, Score, Member) when is_pid(Conn),
-				    is_integer(Score);
-				    is_float(Score) ->
+zadd(Conn, Key, Score, Member) when is_pid(Conn) ->
     reddy_conn:sync(Conn, ?ZADD, [Key, Score, Member]);
-zadd(Pool, Key, Score, Member) when is_atom(Pool),
-				    is_integer(Score); 
-				    is_float(Score) ->
+zadd(Pool, Key, Score, Member) when is_atom(Pool) ->
     ?WITH_POOL(Pool, zadd, [Key, Score, Member]).
 
 zcard(Conn, Key) when is_pid(Conn) ->
@@ -44,10 +41,15 @@ zincrby(Conn, Key, Increment, Member) when is_pid(Conn) ->
 zincrby(Pool, Key, Increment, Member) ->
     not_implemented.
 
-zrange(Conn, Key, Start, Stop, true) when is_pid(Conn) ->
-    not_implemented;
-zrange(Pool, Key, Start, Stop, false) ->
-    not_implemented.
+zrange(Conn, Key, Start, Stop, with_scores) when is_pid(Conn) ->
+    create_score_reply(reddy_conn:sync(Conn, ?ZRANGE, [Key, Start, Stop, "WITHSCORES"]));
+zrange(Pool, Key, Start, Stop, with_scores) when is_atom(Pool) ->
+    ?WITH_POOL(Pool, zrange, [Key, Start, Stop, "WITHSCORES"]).
+
+zrange(Conn, Key, Start, Stop) when is_pid(Conn) ->
+    reddy_conn:sync(Conn, ?ZRANGE, [Key, Start, Stop]);
+zrange(Pool, Key, Start, Stop) when is_atom(Pool) ->
+    ?WITH_POOL(Pool, zrange, [Key, Start, Stop]).
 
 zrank(Conn, Key, Member) when is_pid(Conn) ->
     not_implemented;
@@ -55,9 +57,9 @@ zrank(Pool, Key, Member) ->
     not_implemented.
 
 zrem(Conn, Key, Member) when is_pid(Conn) ->
-    not_implemented;
-zrem(Pool, Key, Member) ->
-    not_implemented.
+    reddy_conn:sync(Conn, ?ZREM, [Key, Member]);
+zrem(Pool, Key, Member) when is_atom(Pool) ->
+    ?WITH_POOL(Pool, zrem, [Key, Member]).
 
 zremrangebyscore(Conn, Key, Min, Max) when is_pid(Conn) ->
     not_implemented;
@@ -74,5 +76,18 @@ zscore(Conn, Key, Member) when is_pid(Conn) ->
 zscore(Pool, Key, Member) ->
     not_implemented.
 
+%% Internal
+create_score_reply(List) ->
+    create_score_reply(List, []).
+create_score_reply([Value, Score|Rest], Return) ->
+    create_score_reply(Rest, Return++[{Value, binary_to_number(Score)}]);
+create_score_reply([], Return) ->
+    Return.
 
-
+binary_to_number(Binary) ->
+    List = binary_to_list(Binary),
+    try list_to_float(List)
+    catch
+	error: badarg ->
+	    list_to_integer(List)
+    end.

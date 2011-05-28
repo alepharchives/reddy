@@ -72,6 +72,8 @@
 
 %% Sortet set ops
 -define(ZADD, "ZADD").
+-define(ZRANGE, "ZRANGE").
+-define(ZREM, "ZREM").
 
 %% Hash ops
 -define(HDEL, "HDEL").

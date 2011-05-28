@@ -244,6 +244,16 @@ create(Op=?ZADD, Args) ->
 	      args=Args,
 	      resp_type=integer};
 
+create(Op=?ZRANGE, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=multi_bulk};
+
+create(Op=?ZREM, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=integer};
+
 %% Hash ops
 create(Op=?HDEL, Args) ->
     #reddy_op{name=Op,
