@@ -27,9 +27,9 @@ zadd(Pool, Key, Score, Member) when is_atom(Pool) ->
     ?WITH_POOL(Pool, zadd, [Key, Score, Member]).
 
 zcard(Conn, Key) when is_pid(Conn) ->
-    not_implemented;
+    reddy_conn:sync(Conn, ?ZCARD, [Key]);
 zcard(Pool, Key) ->
-    not_implemented.
+    ?WITH_POOL(Pool, zrange, [Key]).
 
 zcount(Conn, Key, Min, Max) when is_pid(Conn) ->
     not_implemented;

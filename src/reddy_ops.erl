@@ -254,6 +254,11 @@ create(Op=?ZREM, Args) ->
 	      args=Args,
 	      resp_type=integer};
 
+create(Op=?ZCARD, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=integer};
+
 %% Hash ops
 create(Op=?HDEL, Args) ->
     #reddy_op{name=Op,

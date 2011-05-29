@@ -74,6 +74,7 @@
 -define(ZADD, "ZADD").
 -define(ZRANGE, "ZRANGE").
 -define(ZREM, "ZREM").
+-define(ZCARD, "ZCARD").
 
 %% Hash ops
 -define(HDEL, "HDEL").

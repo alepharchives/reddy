@@ -42,3 +42,11 @@ zrange_test() ->
     reddy_sorted_sets:zrem(C, ?TEST_ZET1, "three"),
     reddy_conn:close(C).
     
+zcard_test() ->
+    {ok, C} = ?CONNECT(),
+    ?assertMatch(1, reddy_sorted_sets:zadd(C, ?TEST_ZET1, 1, "one")),
+    ?assertMatch(1, reddy_sorted_sets:zadd(C, ?TEST_ZET1, 2, "two")),
+    ?assertMatch(2, reddy_sorted_sets:zcard(C, ?TEST_ZET1)),
+    reddy_sorted_sets:zrem(C, ?TEST_ZET1, "one"),
+    reddy_sorted_sets:zrem(C, ?TEST_ZET1, "two"),
+    reddy_conn:close(C).
