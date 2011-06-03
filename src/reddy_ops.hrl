@@ -75,6 +75,13 @@
 -define(ZRANGE, "ZRANGE").
 -define(ZREM, "ZREM").
 -define(ZCARD, "ZCARD").
+-define(ZCOUNT, "ZCOUNT").
+-define(ZINCRBY, "ZINCRBY").
+-define(ZRANK, "ZRANK").
+-define(ZREMRANGEBYRANK, "ZREMRANGEBYRANK").
+-define(ZREVRANGE, "ZREVRANGE").
+-define(ZSCORE, "ZSCORE").
+-define(ZRANGEBYSCORE, "ZRANGEBYSCORE").
 
 %% Hash ops
 -define(HDEL, "HDEL").

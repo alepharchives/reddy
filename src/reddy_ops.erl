@@ -259,6 +259,41 @@ create(Op=?ZCARD, Args) ->
 	      args=Args,
 	      resp_type=integer};
 
+create(Op=?ZCOUNT, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=integer};
+
+create(Op=?ZINCRBY, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=bulk};
+
+create(Op=?ZRANK, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=integer};
+
+create(Op=?ZREMRANGEBYRANK, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=integer};
+
+create(Op=?ZREVRANGE, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=multi_bulk};
+
+create(Op=?ZSCORE, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=bulk};
+
+create(Op=?ZRANGEBYSCORE, Args) ->
+    #reddy_op{name=Op,
+	      args=Args,
+	      resp_type=multi_bulk};
+
 %% Hash ops
 create(Op=?HDEL, Args) ->
     #reddy_op{name=Op,

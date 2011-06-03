@@ -23,7 +23,9 @@
 
 -module(reddy_types).
 
--export([convert_field_value_pairs/1]).
+-export([convert_field_value_pairs/1,
+	create_score_reply/1,
+	binary_to_number/1]).
 
 convert_field_value_pairs(FVPairs) ->
     convert_field_value_pairs(FVPairs, []).
@@ -40,3 +42,18 @@ convert_field_value_pairs([{Field, Value}|T], Accum) ->
     convert_field_value_pairs(T, [[Field1, Value]|Accum]);
 convert_field_value_pairs([H|T], Accum) ->
     convert_field_value_pairs(T, [H|Accum]).
+
+create_score_reply(List) ->
+    create_score_reply(List, []).
+create_score_reply([Value, Score|Rest], Return) ->
+    create_score_reply(Rest, Return++[{Value, binary_to_number(Score)}]);
+create_score_reply([], Return) ->
+    Return.
+
+binary_to_number(Binary) ->
+    List = binary_to_list(Binary),
+    try list_to_float(List)
+    catch
+	error: badarg ->
+	    list_to_integer(List)
+    end.
