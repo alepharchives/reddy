@@ -135,3 +135,6 @@
 -define(ZREVRANK, "ZREVRANK").
 -define(ZSCORE, "ZSCORE").
 -define(ZUNIONSTORE, "ZUNIONSTORE").
+
+%% Pubsub ops
+-define(PUBLISH, "PUBLISH").
